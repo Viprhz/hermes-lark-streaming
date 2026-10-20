@@ -25,6 +25,12 @@ from .streaming.text import strip_reasoning_tags
 _logger = logging.getLogger("hermes_lark_streaming")
 _CARD_CREATION_WAIT_SEC = 10.0
 
+# 「卡死的活跃会话」最终兜底上限。正常活跃会话由 complete/abort/interrupt hook
+# 负责清理，_prune_stale_sessions 只回收已终结会话；但若所有终结 hook 都漏触发
+# （例如网关被 SIGKILL 前的半状态），仍需一个上限防止 _sessions 无限累积。
+# 取值远大于任何合理的单回合时长（4h），确保不会误杀正在流式的长回合。
+_ACTIVE_SESSION_HARD_TTL = 4 * 60 * 60.0
+
 
 class StreamCardController(StreamingController):
     """流式卡片控制器 — 管理多条消息的卡片生命周期."""
@@ -689,7 +695,35 @@ class StreamCardController(StreamingController):
 
     def _prune_stale_sessions(self) -> None:
         now = time.time()
-        stale = [mid for mid, s in self._sessions.items() if mid is not None and now - s.created_at > self._session_ttl]
+        # 只回收「已终结」(COMPLETED/FAILED/ABORTED) 且超过 TTL 的会话。
+        #
+        # 原实现只看 now - created_at > ttl，是【绝对年龄】而非空闲时间，
+        # 与「是否仍在流式」无关。于是一个超过 card_ttl_sec(默认 600s) 的长回合，
+        # 会在【下一条消息到达时】被 on_message_started 里的这次 prune 顺手清掉 ——
+        # 卡片当场冻结在最后一次 batch update，后续 delta 因 session 已从
+        # _sessions 移除而全部丢弃，表现为「卡片失效/卡住不动」。
+        # 长工具链回合（>10 min）几乎必然踩中。
+        #
+        # 活跃会话有自己的终结路径（complete/abort/interrupt hook）负责清理，
+        # 这里放行不会泄漏；仅对已终结会话做兜底回收。
+        # 另设 _ACTIVE_SESSION_HARD_TTL 作为「卡死的活跃会话」的最终兜底，
+        # 避免 hook 全部漏触发时无限累积。
+        stale: list[str] = []
+        for mid, s in self._sessions.items():
+            if mid is None:
+                continue
+            age = now - s.created_at
+            if age <= self._session_ttl:
+                continue
+            state = getattr(s, "state", None)
+            is_terminal = bool(getattr(state, "is_terminal", False))
+            if is_terminal or age > _ACTIVE_SESSION_HARD_TTL:
+                if not is_terminal:
+                    _logger.warning(
+                        "pruning ACTIVE session past hard TTL: msg=%s age=%.0fs state=%s",
+                        mid[:12], age, state,
+                    )
+                stale.append(mid)
         for mid in stale:
             _logger.warning("pruning stale session: msg=%s", mid[:12])
             self._cleanup(mid)
