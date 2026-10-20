@@ -29,6 +29,9 @@ dev = [
   "types-PyYAML",
 ]
 
+[tool.setuptools.package-data]
+hermes_lark_streaming = ["compat_contract.json"]
+
 [tool.setuptools.packages.find]
 include = ["hermes_lark_streaming*"]
 

@@ -29,6 +29,10 @@ def main() -> int:
 
 
 def _commands() -> dict[str, Callable[[], int]]:
+    if Path(__file__).with_name("compat_contract.json").exists():
+        from .runtime_cli import check_status, verify, refuse_legacy
+        return {"status": check_status, "verify": verify, "install": refuse_legacy,
+                "uninstall": refuse_legacy, "restore": refuse_legacy}
     return {
         "install": _cmd_install,
         "uninstall": _cmd_uninstall,

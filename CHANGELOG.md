@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [Local runtime compatibility] - 2026-09-15
+
+- Adapt to the verified Hermes 0.21.3 runtime without editing Hermes core files; bind the production registry's Feishu adapter, not a duplicate source import.
+- Preserve final-only answers selected by the operator: live tool progress in CardKit, authoritative answer after gateway shaping/redaction, exactly-once final confirmation. Preserve existing active-session TTL fix.
+- Add compatibility fingerprints and native register entry point; replace AST self-heal with read-only readiness checks. Legacy install/restore are blocked in runtime mode; enable/disable via Hermes plugin CLI.
+- Verification: 13 offline integration regressions and actual plugin discovery passed. Post-deploy real CardKit probe verified by server readback (message om_x100b65a748ac40a4c3d6bf4f42534b5). Gateway PID54739 confirmed loaded; no model call in probe.
+- Deployment and rollback: /Users/ronny/clawd/reports/lark-streaming-compat-2026-09-15/DEPLOYMENT.md.
+
 ## [0.12.0] - 2026-07-31
 
 ### 新增

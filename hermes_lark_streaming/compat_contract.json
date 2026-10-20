@@ -1,0 +1,12 @@
+{
+  "baseline": "Hermes 0.22.2+2123.g8f5693a / 8f5693af418256b89da17ddda18a9242f113dcf6 (locally verified 2026-10-19)",
+  "modules": {
+    "gateway/run_turn_runner.py": "6cf9f1acdd64d69f5c613be214695b33dafe215eeced68cebe53f5d0c5e4cbc9",
+    "gateway/run_turn.py": "c546b5cbc19bfb28606dee9d25e46f6bf0fc6bde03f2695d6b1f5ade755d4566",
+    "gateway/run_turn_progress.py": "d62f6cd54fe2a54a9a14702159b11a9f8d9dcc4ab0510df4276996053c76a323",
+    "gateway/run_turn_persistence.py": "6325c450d3356cc0f56f3f337ac424c524ea06fdd27a8c4879f317447a5218e1",
+    "plugins/platforms/feishu/adapter.py": "7f2588009aa9cc488e9280b527a31c29c37c1141065ceb3643460a3f3d5e7949",
+    "gateway/platforms/base.py": "e2ab51d8ae41933741644d65b87bdeabbf20a641d218b055f681ea96d245340e",
+    "cron/scheduler_delivery.py": "7078145d9f66bbf21dd59de03f5a3e5987d6b01996bb179624c942c0ae1536bb"
+  }
+}
